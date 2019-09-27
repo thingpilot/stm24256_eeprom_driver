@@ -1,4 +1,8 @@
 ## STM24256 Driver Release Notes
+**v1.1.1** *27/09/2019*
+
+ - Unify usage of brackets throughout library
+
 **v1.1.0** *27/09/2019*
 
  - Created typedef for EEPROM_Status; `EEPROM_Status_t`
