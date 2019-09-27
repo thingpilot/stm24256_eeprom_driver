@@ -1,6 +1,6 @@
 /**
   * @file    STM24256.h
-  * @version 1.0.0
+  * @version 1.1.0
   * @author  Adam Mitchell
   * @brief   Header file of the STM24256 EEPROM driver module
   */
@@ -25,6 +25,8 @@ class STM24256 {
 
     public:
 
+        typedef int EEPROM_Status_t;
+
         enum {
             EEPROM_OK                            = 0,
             EEPROM_SET_OP_ADDRESS_FAIL_MEM_ARRAY = 1,
@@ -33,7 +35,7 @@ class STM24256 {
             EEPROM_READ_FAIL                     = 4,
             EEPROM_WRITE_FAIL                    = 5,
             EEPROM_VERIFY_FAIL                   = 6
-        } EEPROM_Status_t;
+        };
 
         /** Constructor. Create an EEPROM interface, connected to the pins specified 
          *  operating at the specified frequency
@@ -43,7 +45,7 @@ class STM24256 {
          * @param scl I2C clock line pin
          * @param frequency_hz The bus frequency in hertz
          */
-        STM24256(PinName write_control, PinName sda, PinName, scl, int frequency_hz);
+        STM24256(PinName write_control, PinName sda, PinName scl, int frequency_hz);
 
         /** Destructor. Will disable write_control
          */
@@ -99,4 +101,4 @@ class STM24256 {
         I2C _i2c;
 
         int _i2c_frequency_hz;     
-}
+};

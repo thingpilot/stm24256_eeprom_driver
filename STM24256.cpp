@@ -1,10 +1,12 @@
 /**
   * @file    STM24256.cpp
-  * @version 1.0.0
+  * @version 1.1.0
   * @author  Adam Mitchell
   * @brief   C++ file of the STM24256 EEPROM driver module
   */
 
+/** Includes
+ */
 #include "STM24256.h"
 
 /** Constructor. Create an EEPROM interface, connected to the pins specified 
@@ -52,7 +54,7 @@ void STM24256::disable_write()
  * @param send_stop Optionally generate an I2C stop condition on the bus
  * @return Indicates success or failure reason
  */
-EEPROM_Status_t STM24256::set_operation_address(uint16_t address, bool send_stop)
+STM24256::EEPROM_Status_t STM24256::set_operation_address(uint16_t address, bool send_stop)
 {
     uint8_t address_msb = address >> 8;
     uint8_t address_lsb = address & 0xFF;
@@ -81,12 +83,12 @@ EEPROM_Status_t STM24256::set_operation_address(uint16_t address, bool send_stop
 
     if(send_stop) 
     {
-        _i2c.stop()
+        _i2c.stop();
     }
 
     _i2c.unlock();
 
-    return EEPROM_SET_OP_ADDRESS_OK;
+    return EEPROM_OK;
 }
 
 /** Read data_length bytes from address into data
@@ -96,7 +98,7 @@ EEPROM_Status_t STM24256::set_operation_address(uint16_t address, bool send_stop
  * @param data_length Amount of data to retrieve in bytes
  * @return Indicates success or failure reason
  */
-EEPROM_Status_t STM24256::read_from_address(uint16_t address, char *data, int data_length)
+STM24256::EEPROM_Status_t STM24256::read_from_address(uint16_t address, char *data, int data_length)
 {
     _i2c.lock();
 
@@ -128,7 +130,7 @@ EEPROM_Status_t STM24256::read_from_address(uint16_t address, char *data, int da
  *               to the EEPROM. Defaults to true
  * @return Indicates success or failure reason
  */
-EEPROM_Status_t STM24256::write_to_address(uint16_t address, char *data, int data_length, bool verify
+STM24256::EEPROM_Status_t STM24256::write_to_address(uint16_t address, char *data, int data_length, bool verify)
 {
     _i2c.lock();
 
@@ -159,13 +161,13 @@ EEPROM_Status_t STM24256::write_to_address(uint16_t address, char *data, int dat
         /** There must be a minimum of 5 ms delay between EEPROM operations. Without this delay,
          *  the verify operation will fail sporadically
          */
-        wait_ms(5);
+        wait_us(5000);
 
         char data_verify[data_length];
 
         if(read_from_address(address, data_verify, data_length) != EEPROM_OK) 
         {
-            return EEPOM_READ_FAIL;
+            return EEPROM_READ_FAIL;
         }
 
         for(int i = 0; i < data_length; i++)
