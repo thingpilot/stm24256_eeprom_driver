@@ -45,7 +45,7 @@ class STM24256 {
          * @param scl I2C clock line pin
          * @param frequency_hz The bus frequency in hertz
          */
-        STM24256(PinName write_control, PinName sda, PinName, scl, int frequency_hz);
+        STM24256(PinName write_control, PinName sda, PinName scl, int frequency_hz);
 
         /** Destructor. Will disable write_control
          */
@@ -101,4 +101,4 @@ class STM24256 {
         I2C _i2c;
 
         int _i2c_frequency_hz;     
-}
+};

@@ -81,12 +81,12 @@ STM24256::EEPROM_Status_t STM24256::set_operation_address(uint16_t address, bool
 
     if(send_stop) 
     {
-        _i2c.stop()
+        _i2c.stop();
     }
 
     _i2c.unlock();
 
-    return EEPROM_SET_OP_ADDRESS_OK;
+    return EEPROM_OK;
 }
 
 /** Read data_length bytes from address into data
@@ -165,7 +165,7 @@ STM24256::EEPROM_Status_t STM24256::write_to_address(uint16_t address, char *dat
 
         if(read_from_address(address, data_verify, data_length) != EEPROM_OK) 
         {
-            return EEPOM_READ_FAIL;
+            return EEPROM_READ_FAIL;
         }
 
         for(int i = 0; i < data_length; i++)
