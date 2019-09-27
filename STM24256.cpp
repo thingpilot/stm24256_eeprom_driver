@@ -159,7 +159,7 @@ STM24256::EEPROM_Status_t STM24256::write_to_address(uint16_t address, char *dat
         /** There must be a minimum of 5 ms delay between EEPROM operations. Without this delay,
          *  the verify operation will fail sporadically
          */
-        wait_ms(5);
+        wait_us(5000);
 
         char data_verify[data_length];
 
