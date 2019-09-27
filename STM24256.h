@@ -25,6 +25,8 @@ class STM24256 {
 
     public:
 
+        typedef int EEPROM_Status_t;
+
         enum {
             EEPROM_OK                            = 0,
             EEPROM_SET_OP_ADDRESS_FAIL_MEM_ARRAY = 1,
@@ -33,7 +35,7 @@ class STM24256 {
             EEPROM_READ_FAIL                     = 4,
             EEPROM_WRITE_FAIL                    = 5,
             EEPROM_VERIFY_FAIL                   = 6
-        } EEPROM_Status_t;
+        };
 
         /** Constructor. Create an EEPROM interface, connected to the pins specified 
          *  operating at the specified frequency

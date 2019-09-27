@@ -52,7 +52,7 @@ void STM24256::disable_write()
  * @param send_stop Optionally generate an I2C stop condition on the bus
  * @return Indicates success or failure reason
  */
-EEPROM_Status_t STM24256::set_operation_address(uint16_t address, bool send_stop)
+STM24256::EEPROM_Status_t STM24256::set_operation_address(uint16_t address, bool send_stop)
 {
     uint8_t address_msb = address >> 8;
     uint8_t address_lsb = address & 0xFF;
@@ -96,7 +96,7 @@ EEPROM_Status_t STM24256::set_operation_address(uint16_t address, bool send_stop
  * @param data_length Amount of data to retrieve in bytes
  * @return Indicates success or failure reason
  */
-EEPROM_Status_t STM24256::read_from_address(uint16_t address, char *data, int data_length)
+STM24256::EEPROM_Status_t STM24256::read_from_address(uint16_t address, char *data, int data_length)
 {
     _i2c.lock();
 
@@ -128,7 +128,7 @@ EEPROM_Status_t STM24256::read_from_address(uint16_t address, char *data, int da
  *               to the EEPROM. Defaults to true
  * @return Indicates success or failure reason
  */
-EEPROM_Status_t STM24256::write_to_address(uint16_t address, char *data, int data_length, bool verify
+STM24256::EEPROM_Status_t STM24256::write_to_address(uint16_t address, char *data, int data_length, bool verify)
 {
     _i2c.lock();
 
