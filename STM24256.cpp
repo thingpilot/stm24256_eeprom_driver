@@ -5,6 +5,8 @@
   * @brief   C++ file of the STM24256 EEPROM driver module
   */
 
+/** Includes
+ */
 #include "STM24256.h"
 
 /** Constructor. Create an EEPROM interface, connected to the pins specified 
