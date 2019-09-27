@@ -57,21 +57,25 @@ EEPROM_Status_t STM24256::set_operation_address(uint16_t address, bool send_stop
     uint8_t address_msb = address >> 8;
     uint8_t address_lsb = address & 0xFF;
 
+    _i2c.lock();
 
     _i2c.start();
 
     if(_i2c.write(EEPROM_MEM_ARRAY_ADDRESS_WRITE) != mbed::I2C::ACK) 
     {
+        _i2c.unlock();
         return EEPROM_SET_OP_ADDRESS_FAIL_MEM_ARRAY;
     }
 
     if(_i2c.write(address_msb) != mbed::I2C::ACK) 
     {
+        _i2c.unlock();
         return EEPROM_SET_OP_ADDRESS_FAIL_MSB;
     }
 
     if(_i2c.write(address_lsb) != mbed::I2C::ACK) 
     {
+        _i2c.unlock();
         return EEPROM_SET_OP_ADDRESS_FAIL_LSB;
     }
 
@@ -80,6 +84,7 @@ EEPROM_Status_t STM24256::set_operation_address(uint16_t address, bool send_stop
         _i2c.stop()
     }
 
+    _i2c.unlock();
 
     return EEPROM_SET_OP_ADDRESS_OK;
 }
