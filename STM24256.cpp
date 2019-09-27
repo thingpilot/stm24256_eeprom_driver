@@ -157,7 +157,8 @@ STM24256::EEPROM_Status_t STM24256::write_to_address(uint16_t address, char *dat
     disable_write();
     _i2c.unlock();
 
-    if(verify) {
+    if(verify) 
+    {
         /** There must be a minimum of 5 ms delay between EEPROM operations. Without this delay,
          *  the verify operation will fail sporadically
          */

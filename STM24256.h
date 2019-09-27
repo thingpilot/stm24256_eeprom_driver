@@ -21,13 +21,15 @@
 
 /** Base class for the STM24256 series EEPROM 
  */ 
-class STM24256 {
+class STM24256 
+{
 
     public:
 
         typedef int EEPROM_Status_t;
 
-        enum {
+        enum 
+        {
             EEPROM_OK                            = 0,
             EEPROM_SET_OP_ADDRESS_FAIL_MEM_ARRAY = 1,
             EEPROM_SET_OP_ADDRESS_FAIL_MSB       = 2,
@@ -74,7 +76,8 @@ class STM24256 {
 
     private:
 
-        enum {
+        enum 
+        {
             EEPROM_WRITE_ENABLE  = 0,
             EEPROM_WRITE_DISABLE = 1
         };
