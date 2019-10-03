@@ -209,8 +209,8 @@ STM24256::EEPROM_Status_t STM24256::write_to_address(uint16_t address, char *dat
 
             int chunk_length = end_idx - start_idx;
 
-            char write_data[end_idx - start_idx];
-            memcpy(write_data, data[start_idx], end_idx - start_idx);
+            char write_data[chunk_length];
+            memcpy(write_data, data[start_idx], chunk_length);
 
             for(int i = 0; i < chunk_length; i++)
             {
