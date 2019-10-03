@@ -133,6 +133,13 @@ STM24256::Array_16x2 STM24256::get_array_slice_locs(uint16_t start_address, int 
  */
 STM24256::EEPROM_Status_t STM24256::read_from_address(uint16_t address, char *data, int data_length)
 {
+    /** Do not attempt to read zero bytes
+     */
+    if(data_length <= 0)
+    {
+        return EEPROM_DATA_LENGTH_ZERO;
+    }
+
     _i2c.lock();
 
     /** Determine whether or not we need to do a multi-page read or not
