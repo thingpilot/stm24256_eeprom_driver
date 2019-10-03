@@ -165,11 +165,17 @@ STM24256::EEPROM_Status_t STM24256::read_from_address(uint16_t address, char *da
  */
 STM24256::EEPROM_Status_t STM24256::write_to_address(uint16_t address, char *data, int data_length, bool verify)
 {
+    /** Do not attempt to write zero bytes
+     */
     if(data_length <= 0)
     {
         return EEPROM_DATA_LENGTH_ZERO;
     }
 
+    /** The EEPROM will pad single-byte values, this will result in potentially reading
+     *  back 'incorrect' values due to padding. To avoid this we can force the user to pad
+     *  the data, i.e. using a uint16_t instead of uint8_t and avoid this issue
+     */
     if(data_length % 2 != 0) 
     {
         return EEPROM_DATA_LENGTH_ODD;
