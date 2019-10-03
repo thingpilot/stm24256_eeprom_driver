@@ -82,6 +82,12 @@ class STM24256
             EEPROM_WRITE_DISABLE = 1
         };
 
+        enum
+        {
+            LENGTH_DIM  = 0,
+            ADDRESS_DIM = 1
+        };
+
         /** Set EEPROM write_control line to logic low; this allows the EEPROM to enter write mode
          */
         void enable_write();
