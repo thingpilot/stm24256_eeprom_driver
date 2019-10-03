@@ -99,6 +99,10 @@ class STM24256
          */ 
         EEPROM_Status_t set_operation_address(uint16_t address, bool stop);
 
+        /**
+         *
+         */  
+        typedef int (&Array_16x2)[16][2];
         DigitalOut _write_control;
 
         I2C _i2c;
