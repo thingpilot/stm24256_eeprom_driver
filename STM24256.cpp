@@ -135,6 +135,11 @@ STM24256::EEPROM_Status_t STM24256::read_from_address(uint16_t address, char *da
 {
     _i2c.lock();
 
+    /** Determine whether or not we need to do a multi-page read or not
+     */
+    int boundaries = 0;
+    STM24256::Array_16x2 slice_locs = get_array_slice_locs(address, data_length, boundaries);
+
     EEPROM_Status_t status = set_operation_address(address, true);
     if(status != EEPROM_OK)
     {
@@ -251,13 +256,13 @@ STM24256::EEPROM_Status_t STM24256::write_to_address(uint16_t address, char *dat
             /** Copy data 'slice' into temp write_data buffer
              */ 
             char write_data[chunk_length];
-            memcpy(write_data, data[start_idx], chunk_length);
+            memcpy(write_data, &data[start_idx], chunk_length);
 
             /** Write each byte
              */
             for(int i = 0; i < chunk_length; i++)
             {
-                if(_i2c.write(write_data[i]) !- mbed::I2C::ACK)
+                if(_i2c.write(write_data[i]) != mbed::I2C::ACK)
                 {
                     disable_write();
                     _i2c.unlock();
