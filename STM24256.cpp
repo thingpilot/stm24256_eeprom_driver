@@ -169,18 +169,22 @@ STM24256::EEPROM_Status_t STM24256::write_to_address(uint16_t address, char *dat
 
     enable_write();
 
-    EEPROM_Status_t status = set_operation_address(address, false);
-    if(status != EEPROM_OK)
-    {
-        _i2c.unlock();
-        return status;
-    }
-
+    /** Determine whether or not we need to do a multi-page write or not
+     */
     int boundaries = 0;
     STM24256::Array_16x2 slice_locs = get_array_slice_locs(address, data_length, boundaries);
 
+    /** Single page write
+     */
     if(boundaries == 0) 
     {
+        EEPROM_Status_t status = set_operation_address(address, false);
+        if(status != EEPROM_OK)
+        {
+            _i2c.unlock();
+            return status;
+        }
+
         for(int i = 0; i < data_length; i++) 
         {
             if(_i2c.write(data[i]) != mbed::I2C::ACK)
@@ -191,11 +195,26 @@ STM24256::EEPROM_Status_t STM24256::write_to_address(uint16_t address, char *dat
             }
         }
     }
+    /** Multi-page write
+     */
     else 
     {
+        /** Each boundary represents a new page within the EEPROM we need to write to
+         *  and each individual page requires the operation address to be reset to
+         *  the new address
+         */
         for(int i = 0; i <= boundaries; i++)
         {
+            uint16_t address = slice_locs[i][ADDRESS_DIM];
+            EEPROM_Status_t status = set_operation_address(address, false);
+            if(status != EEPROM_OK)
+            {
+                _i2c.unlock();
+                return status;
+            }
+
             int start_idx, end_idx;
+
             if(i == 0) 
             {
                 start_idx = 0;
@@ -204,7 +223,7 @@ STM24256::EEPROM_Status_t STM24256::write_to_address(uint16_t address, char *dat
             else
             {
                 start_idx = slice_locs[i - 1][LENGTH_DIM]; 
-                end_idx   = slice_locs[i][LENGTH_DIM] - 1;
+                end_idx   = (slice_locs[i - 1][LENGTH_DIM] + slice_locs[i][LENGTH_DIM]) - 1;
             }
 
             int chunk_length = end_idx - start_idx;
@@ -220,6 +239,14 @@ STM24256::EEPROM_Status_t STM24256::write_to_address(uint16_t address, char *dat
                     _i2c.unlock();
                     return EEPROM_WRITE_FAIL;
                 }
+            }
+
+            /** There must be a minimum of 5 ms delay between EEPROM operations. Without this delay,
+             *  the subsequent write operations will fail sporadically
+             */
+            if(i != boundaries) 
+            {
+                wait_us(5000);
             }
         }
     }
