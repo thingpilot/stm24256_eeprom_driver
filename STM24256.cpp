@@ -91,6 +91,39 @@ STM24256::EEPROM_Status_t STM24256::set_operation_address(uint16_t address, bool
     return EEPROM_OK;
 }
 
+/**
+ *  
+ */ 
+Array_16x2 STM24256::get_array_slice_locs(uint16_t start_address, int data_length, int &boundaries) 
+{
+    static int chunks[16][2] = {0, 0};
+
+    int chunk_length = 0;
+
+    for(uint16_t address = start_address; address < start_address + data_length; address++) 
+    {
+        if(address % 64 == 0 && address > 0) 
+        {
+            chunks[boundaries][DATA_LENGTH_DIMENSION] = chunk_length;
+            chunks[boundaries][DATA_ADDRESS_DIMENSION] = (address - chunk_length);
+
+            chunk_length = 0;
+            boundaries++;
+        }
+
+        chunk_length++;
+    }
+
+    if(chunk_length > 0) 
+    {
+        chunks[boundaries][DATA_LENGTH_DIMENSION] = chunk_length;
+        chunks[boundaries][DATA_ADDRESS_DIMENSION] = chunks[boundaries - 1][DATA_LENGTH_DIMENSION]
+                                                    + chunks[boundaries - 1][DATA_ADDRESS_DIMENSION];
+    }
+
+    return chunks;
+}
+
 /** Read data_length bytes from address into data
  * 
  * @param address 2 byte address that points to start of data

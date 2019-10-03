@@ -103,6 +103,12 @@ class STM24256
          *
          */  
         typedef int (&Array_16x2)[16][2];
+
+        /**
+         * 
+         */ 
+        Array_16x2 get_array_slice_locs(uint16_t start_address, int data_length, int &boundaries);
+
         DigitalOut _write_control;
 
         I2C _i2c;
