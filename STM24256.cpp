@@ -174,7 +174,7 @@ STM24256::EEPROM_Status_t STM24256::write_to_address(uint16_t address, char *dat
     {
         return EEPROM_DATA_LENGTH_ODD;
     }
-    
+
     _i2c.lock();
 
     enable_write();
@@ -223,6 +223,8 @@ STM24256::EEPROM_Status_t STM24256::write_to_address(uint16_t address, char *dat
                 return status;
             }
 
+            /** Determine array indices we need to write
+             */
             int start_idx, end_idx;
 
             if(i == 0) 
@@ -236,11 +238,17 @@ STM24256::EEPROM_Status_t STM24256::write_to_address(uint16_t address, char *dat
                 end_idx   = (slice_locs[i - 1][LENGTH_DIM] + slice_locs[i][LENGTH_DIM]) - 1;
             }
 
+            /** Determine length of data 'slice' we need to write
+             */
             int chunk_length = end_idx - start_idx;
 
+            /** Copy data 'slice' into temp write_data buffer
+             */ 
             char write_data[chunk_length];
             memcpy(write_data, data[start_idx], chunk_length);
 
+            /** Write each byte
+             */
             for(int i = 0; i < chunk_length; i++)
             {
                 if(_i2c.write(write_data[i]) !- mbed::I2C::ACK)
