@@ -91,10 +91,10 @@ STM24256::EEPROM_Status_t STM24256::set_operation_address(uint16_t address, bool
     return EEPROM_OK;
 }
 
-/**
+/** 
  *  
  */ 
-Array_16x2 STM24256::get_array_slice_locs(uint16_t start_address, int data_length, int &boundaries) 
+STM24256::Array_16x2 STM24256::get_array_slice_locs(uint16_t start_address, int data_length, int &boundaries) 
 {
     static int chunks[16][2] = {0, 0};
 
@@ -104,8 +104,8 @@ Array_16x2 STM24256::get_array_slice_locs(uint16_t start_address, int data_lengt
     {
         if(address % 64 == 0 && address > 0) 
         {
-            chunks[boundaries][DATA_LENGTH_DIMENSION] = chunk_length;
-            chunks[boundaries][DATA_ADDRESS_DIMENSION] = (address - chunk_length);
+            chunks[boundaries][LENGTH_DIM] = chunk_length;
+            chunks[boundaries][ADDRESS_DIM] = (address - chunk_length);
 
             chunk_length = 0;
             boundaries++;
@@ -116,9 +116,9 @@ Array_16x2 STM24256::get_array_slice_locs(uint16_t start_address, int data_lengt
 
     if(chunk_length > 0) 
     {
-        chunks[boundaries][DATA_LENGTH_DIMENSION] = chunk_length;
-        chunks[boundaries][DATA_ADDRESS_DIMENSION] = chunks[boundaries - 1][DATA_LENGTH_DIMENSION]
-                                                    + chunks[boundaries - 1][DATA_ADDRESS_DIMENSION];
+        chunks[boundaries][LENGTH_DIM] = chunk_length;
+        chunks[boundaries][ADDRESS_DIM] = chunks[boundaries - 1][LENGTH_DIM]
+                                                    + chunks[boundaries - 1][ADDRESS_DIM];
     }
 
     return chunks;
@@ -176,13 +176,51 @@ STM24256::EEPROM_Status_t STM24256::write_to_address(uint16_t address, char *dat
         return status;
     }
 
-    for(int i = 0; i < data_length; i++) 
+    int boundaries = 0;
+    STM24256::Array_16x2 slice_locs = get_array_slice_locs(address, data_length, boundaries);
+
+    if(boundaries == 0) 
     {
-        if(_i2c.write(data[i]) != mbed::I2C::ACK)
+        for(int i = 0; i < data_length; i++) 
         {
-            disable_write();
-            _i2c.unlock();
-            return EEPROM_WRITE_FAIL;
+            if(_i2c.write(data[i]) != mbed::I2C::ACK)
+            {
+                disable_write();
+                _i2c.unlock();
+                return EEPROM_WRITE_FAIL;
+            }
+        }
+    }
+    else 
+    {
+        for(int i = 0; i <= boundaries; i++)
+        {
+            int start_idx, end_idx;
+            if(i == 0) 
+            {
+                start_idx = 0;
+                end_idx   = slice_locs[i][LENGTH_DIM] - 1;
+            }
+            else
+            {
+                start_idx = slice_locs[i - 1][LENGTH_DIM]; 
+                end_idx   = slice_locs[i][LENGTH_DIM] - 1;
+            }
+
+            int chunk_length = end_idx - start_idx;
+
+            char write_data[end_idx - start_idx];
+            memcpy(write_data, data[start_idx], end_idx - start_idx);
+
+            for(int i = 0; i < chunk_length; i++)
+            {
+                if(_i2c.write(write_data[i]) !- mbed::I2C::ACK)
+                {
+                    disable_write();
+                    _i2c.unlock();
+                    return EEPROM_WRITE_FAIL;
+                }
+            }
         }
     }
 
