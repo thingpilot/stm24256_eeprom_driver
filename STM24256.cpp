@@ -158,20 +158,19 @@ STM24256::EEPROM_Status_t STM24256::read_from_address(uint16_t address, char *da
             return status;
         }
 
-        for(int i = 0; i < data_length; i++) 
+        if(_i2c.read(EEPROM_MEM_ARRAY_ADDRESS_READ, data, data_length) != mbed::I2C::ACK) 
         {
-            if(_i2c.read(EEPROM_MEM_ARRAY_ADDRESS_READ, data, data_length) != mbed::I2C::ACK) 
-            {
-                _i2c.unlock();
-                return EEPROM_READ_FAIL;
-            }
+            _i2c.unlock();
+            return EEPROM_READ_FAIL;
         }
     }
     /** Multi-page read
      */
     else 
     {
-
+        // TODO: Multi-page read
+        // TODO: Write in chunks - don't iterate in for loop
+    }
     
 
     
@@ -250,6 +249,7 @@ STM24256::EEPROM_Status_t STM24256::write_to_address(uint16_t address, char *dat
         for(int i = 0; i <= boundaries; i++)
         {
             uint16_t address = slice_locs[i][ADDRESS_DIM];
+
             EEPROM_Status_t status = set_operation_address(address, false);
             if(status != EEPROM_OK)
             {
