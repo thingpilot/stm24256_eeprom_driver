@@ -165,6 +165,16 @@ STM24256::EEPROM_Status_t STM24256::read_from_address(uint16_t address, char *da
  */
 STM24256::EEPROM_Status_t STM24256::write_to_address(uint16_t address, char *data, int data_length, bool verify)
 {
+    if(data_length <= 0)
+    {
+        return EEPROM_DATA_LENGTH_ZERO;
+    }
+
+    if(data_length % 2 != 0) 
+    {
+        return EEPROM_DATA_LENGTH_ODD;
+    }
+    
     _i2c.lock();
 
     enable_write();

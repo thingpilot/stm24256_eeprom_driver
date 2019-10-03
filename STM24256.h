@@ -37,7 +37,8 @@ class STM24256
             EEPROM_READ_FAIL                     = 4,
             EEPROM_WRITE_FAIL                    = 5,
             EEPROM_VERIFY_FAIL                   = 6,
-            EEPROM_DATA_LENGTH_ODD               = 7
+            EEPROM_DATA_LENGTH_ODD               = 7,
+            EEPROM_DATA_LENGTH_ZERO              = 8
         };
 
         /** Constructor. Create an EEPROM interface, connected to the pins specified 
