@@ -168,12 +168,58 @@ STM24256::EEPROM_Status_t STM24256::read_from_address(uint16_t address, char *da
      */
     else 
     {
-        // TODO: Multi-page read
+        /** Each boundary represents a new page within the EEPROM we need to write to
+         *  and each individual page requires the operation address to be reset to
+         *  the new address
+         */
+        for(int i = 0; i <= boundaries; i++)
+        {
+            uint16_t address = slice_locs[i][ADDRESS_DIM];
+
+            EEPROM_Status_t status = set_operation_address(address, true);
+            if(status != EEPROM_OK)
+            {
+                _i2c.unlock();
+                return status;
+            }
+
+            /** Determine array indices we need to write
+             */
+            int start_idx, end_idx;
+
+            if(i == 0) 
+            {
+                start_idx = 0;
+                end_idx   = slice_locs[i][LENGTH_DIM] - 1;
+            }
+            else
+            {
+                start_idx = slice_locs[i - 1][LENGTH_DIM]; 
+                end_idx   = (slice_locs[i - 1][LENGTH_DIM] + slice_locs[i][LENGTH_DIM]) - 1;
+            }
+
+            /** Determine length of data 'slice' we need to read
+             */
+            int chunk_length = end_idx - start_idx;
+
+            /** Read data chunk
+             */
+            if(_i2c.read(EEPROM_MEM_ARRAY_ADDRESS_READ, &data[start_idx], chunk_length) != mbed::I2C::ACK) 
+            {
+                _i2c.unlock();
+                return EEPROM_READ_FAIL;
+            }
+
+            /** There must be a minimum of 5 ms delay between EEPROM operations. Without this delay,
+             *  the subsequent read operations will fail sporadically
+             */
+            if(i != boundaries) 
+            {
+                wait_us(5000);
+            }
+        }
     }
     
-
-    
-
     _i2c.unlock();
 
     return EEPROM_OK;
