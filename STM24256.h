@@ -107,13 +107,19 @@ class STM24256
          */ 
         EEPROM_Status_t set_operation_address(uint16_t address, bool stop);
 
-        /**
-         *
+        /** Data type to handle 2-D array of size 16 x 2
          */  
         typedef int (&Array_16x2)[16][2];
 
-        /**
+        /** Given a 64 byte page size within the EEPROM, determine where data of length data_length
+         *  and starting at start_address will cross page boundaries
          * 
+         *  @param start_address 2 byte address pointing to the intended start location of the operation
+         *                       in memory
+         *  @param data_length Amount of data to be written in bytes
+         *  @param &boundaries Reference to an integer object to store amount of page boundaries detected
+         *  @return Returns a 2-D array of size 16 x 2 containing amount of bytes to be written in the 
+         *                  0th dimension and address to be written to in the 1st dimension
          */ 
         Array_16x2 get_array_slice_locs(uint16_t start_address, int data_length, int &boundaries);
 
