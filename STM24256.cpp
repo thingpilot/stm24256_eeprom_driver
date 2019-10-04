@@ -219,8 +219,9 @@ STM24256::EEPROM_Status_t STM24256::read_from_address(uint16_t address, char *da
                 return EEPROM_READ_FAIL;
             }
 
-            /** There must be a minimum of 5 ms delay between EEPROM operations. Without this delay,
-             *  the subsequent read operations will fail sporadically
+            /** There must be a minimum of 5 ms delay between EEPROM operations due to the time taken by
+             *  the internal processes of the chip. Without this delay, the subsequent write operations 
+             *  will fail sporadically
              */
             if(boundary != boundaries) 
             {
@@ -291,6 +292,8 @@ STM24256::EEPROM_Status_t STM24256::write_to_address(uint16_t address, char *dat
                 return EEPROM_WRITE_FAIL;
             }
         }
+
+        _i2c.stop();
     }
     /** Multi-page write
      */
@@ -307,6 +310,7 @@ STM24256::EEPROM_Status_t STM24256::write_to_address(uint16_t address, char *dat
             EEPROM_Status_t status = set_operation_address(address, false);
             if(status != EEPROM_OK)
             {
+                disable_write();
                 _i2c.unlock();
                 return status;
             }
@@ -343,8 +347,13 @@ STM24256::EEPROM_Status_t STM24256::write_to_address(uint16_t address, char *dat
                 }
             }
 
-            /** There must be a minimum of 5 ms delay between EEPROM operations. Without this delay,
-             *  the subsequent write operations will fail sporadically
+            /** We must create an I2C stop condition on the bus between page write operations
+             */
+            _i2c.stop();
+
+            /** There must be a minimum of 5 ms delay between EEPROM operations due to the time taken by
+             *  the internal processes of the chip. Without this delay, the subsequent write operations 
+             *  will fail sporadically
              */
             if(boundary != boundaries) 
             {
@@ -353,14 +362,14 @@ STM24256::EEPROM_Status_t STM24256::write_to_address(uint16_t address, char *dat
         }
     }
 
-    _i2c.stop();
     disable_write();
     _i2c.unlock();
 
     if(verify) 
     {
-        /** There must be a minimum of 5 ms delay between EEPROM operations. Without this delay,
-         *  the verify operation will fail sporadically
+        /** There must be a minimum of 5 ms delay between EEPROM operations due to the time taken by
+         *  the internal processes of the chip. Without this delay, the subsequent write operations 
+         *  will fail sporadically
          */
         wait_us(5000);
 
