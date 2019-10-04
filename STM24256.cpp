@@ -99,7 +99,7 @@ STM24256::EEPROM_Status_t STM24256::set_operation_address(uint16_t address, bool
  */ 
 STM24256::Array_16x2 STM24256::get_array_slice_locs(uint16_t start_address, int data_length, int &boundaries) 
 {
-    static int chunks[16][2] = {0, 0};
+    static int chunks[16][2] = {0};
 
     int current_page = -1;
     int end_page = ((start_address + data_length) - 1) / 64; 
@@ -181,6 +181,8 @@ STM24256::EEPROM_Status_t STM24256::read_from_address(uint16_t address, char *da
      */
     else 
     {
+        int start_idx = 0;
+
         /** Each boundary represents a new page within the EEPROM we need to write to
          *  and each individual page requires the operation address to be reset to
          *  the new address
@@ -198,17 +200,14 @@ STM24256::EEPROM_Status_t STM24256::read_from_address(uint16_t address, char *da
 
             /** Determine array indices we need to write
              */
-            int start_idx, end_idx;
 
             if(boundary == 0) 
             {
                 start_idx = 0;
-                end_idx   = slice_locs[boundary][LENGTH_DIM] - 1;
             }
             else
             {
-                start_idx = slice_locs[boundary - 1][LENGTH_DIM]; 
-                end_idx   = (slice_locs[boundary - 1][LENGTH_DIM] + slice_locs[boundary][LENGTH_DIM]) - 1;
+                start_idx += slice_locs[boundary - 1][LENGTH_DIM]; 
             }
 
             /** Read data chunk
@@ -299,6 +298,8 @@ STM24256::EEPROM_Status_t STM24256::write_to_address(uint16_t address, char *dat
      */
     else 
     {
+        int start_idx = 0;
+
         /** Each boundary represents a new page within the EEPROM we need to write to
          *  and each individual page requires the operation address to be reset to
          *  the new address
@@ -317,17 +318,13 @@ STM24256::EEPROM_Status_t STM24256::write_to_address(uint16_t address, char *dat
 
             /** Determine array indices we need to write
              */
-            int start_idx, end_idx;
-
             if(boundary == 0) 
             {
                 start_idx = 0;
-                end_idx   = slice_locs[boundary][LENGTH_DIM] - 1;
             }
             else
             {
-                start_idx = slice_locs[boundary - 1][LENGTH_DIM]; 
-                end_idx   = (slice_locs[boundary - 1][LENGTH_DIM] + slice_locs[boundary][LENGTH_DIM]) - 1;
+                start_idx += slice_locs[boundary - 1][LENGTH_DIM]; 
             }
 
             /** Copy data 'slice' into temp write_data buffer
