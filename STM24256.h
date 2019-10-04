@@ -1,6 +1,6 @@
 /**
   * @file    STM24256.h
-  * @version 1.1.1
+  * @version 1.2.0
   * @author  Adam Mitchell
   * @brief   Header file of the STM24256 EEPROM driver module
   */
