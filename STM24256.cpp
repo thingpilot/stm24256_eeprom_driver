@@ -98,27 +98,37 @@ STM24256::Array_16x2 STM24256::get_array_slice_locs(uint16_t start_address, int 
 {
     static int chunks[16][2] = {0, 0};
 
-    int chunk_length = 0;
+    int current_page = -1;
+    int end_page = ((start_address + data_length) - 1) / 64; 
+
+    uint16_t chunk_start_address = start_address;
+    int chunk_index = 0;
 
     for(uint16_t address = start_address; address < start_address + data_length; address++) 
     {
-        if(address % 64 == 0 && address > 0) 
-        {
-            chunks[boundaries][LENGTH_DIM] = chunk_length;
-            chunks[boundaries][ADDRESS_DIM] = (address - chunk_length);
+        int byte_page = address / 64;
 
-            chunk_length = 0;
+        if(current_page == -1) 
+        {
+            current_page = byte_page;
+        }
+        else if(current_page != byte_page) 
+        {
+            chunks[chunk_index][LENGTH_DIM] = address - chunk_start_address;
+            chunks[chunk_index][ADDRESS_DIM] = chunk_start_address;
+
+            current_page = byte_page;
+            chunk_start_address = address;
+            chunk_index++;
             boundaries++;
         }
-
-        chunk_length++;
-    }
-
-    if(chunk_length > 0) 
-    {
-        chunks[boundaries][LENGTH_DIM] = chunk_length;
-        chunks[boundaries][ADDRESS_DIM] = chunks[boundaries - 1][LENGTH_DIM]
-                                                    + chunks[boundaries - 1][ADDRESS_DIM];
+        
+        if(current_page == end_page)
+        {
+            chunks[chunk_index][LENGTH_DIM] = (start_address + data_length) - chunk_start_address; 
+            chunks[chunk_index][ADDRESS_DIM] = chunk_start_address;
+            break;
+        }
     }
 
     return chunks;
@@ -158,7 +168,7 @@ STM24256::EEPROM_Status_t STM24256::read_from_address(uint16_t address, char *da
             return status;
         }
 
-        if(_i2c.read(EEPROM_MEM_ARRAY_ADDRESS_READ, data, data_length) != mbed::I2C::ACK) 
+        if(_i2c.read(EEPROM_MEM_ARRAY_ADDRESS_READ, data, data_length) != mbed::I2C::NoACK) 
         {
             _i2c.unlock();
             return EEPROM_READ_FAIL;
@@ -172,9 +182,9 @@ STM24256::EEPROM_Status_t STM24256::read_from_address(uint16_t address, char *da
          *  and each individual page requires the operation address to be reset to
          *  the new address
          */
-        for(int i = 0; i <= boundaries; i++)
+        for(int boundary = 0; boundary <= boundaries; boundary++)
         {
-            uint16_t address = slice_locs[i][ADDRESS_DIM];
+            uint16_t address = slice_locs[boundary][ADDRESS_DIM];
 
             EEPROM_Status_t status = set_operation_address(address, true);
             if(status != EEPROM_OK)
@@ -187,24 +197,20 @@ STM24256::EEPROM_Status_t STM24256::read_from_address(uint16_t address, char *da
              */
             int start_idx, end_idx;
 
-            if(i == 0) 
+            if(boundary == 0) 
             {
                 start_idx = 0;
-                end_idx   = slice_locs[i][LENGTH_DIM] - 1;
+                end_idx   = slice_locs[boundary][LENGTH_DIM] - 1;
             }
             else
             {
-                start_idx = slice_locs[i - 1][LENGTH_DIM]; 
-                end_idx   = (slice_locs[i - 1][LENGTH_DIM] + slice_locs[i][LENGTH_DIM]) - 1;
+                start_idx = slice_locs[boundary - 1][LENGTH_DIM]; 
+                end_idx   = (slice_locs[boundary - 1][LENGTH_DIM] + slice_locs[boundary][LENGTH_DIM]) - 1;
             }
-
-            /** Determine length of data 'slice' we need to read
-             */
-            int chunk_length = end_idx - start_idx;
 
             /** Read data chunk
              */
-            if(_i2c.read(EEPROM_MEM_ARRAY_ADDRESS_READ, &data[start_idx], chunk_length) != mbed::I2C::ACK) 
+            if(_i2c.read(EEPROM_MEM_ARRAY_ADDRESS_READ, &data[start_idx], slice_locs[boundary][LENGTH_DIM]) != mbed::I2C::NoACK) 
             {
                 _i2c.unlock();
                 return EEPROM_READ_FAIL;
@@ -213,7 +219,7 @@ STM24256::EEPROM_Status_t STM24256::read_from_address(uint16_t address, char *da
             /** There must be a minimum of 5 ms delay between EEPROM operations. Without this delay,
              *  the subsequent read operations will fail sporadically
              */
-            if(i != boundaries) 
+            if(boundary != boundaries) 
             {
                 wait_us(5000);
             }
@@ -273,11 +279,14 @@ STM24256::EEPROM_Status_t STM24256::write_to_address(uint16_t address, char *dat
             return status;
         }
 
-        if(_i2c.write(EEPROM_MEM_ARRAY_ADDRESS_WRITE, data, data_length) != mbed::I2C::ACK) 
+        for(int i = 0; i < data_length; i++) 
         {
-            disable_write();
-            _i2c.unlock();
-            return EEPROM_WRITE_FAIL;
+            if(_i2c.write(data[i]) != mbed::I2C::ACK)
+            {
+                disable_write();
+                _i2c.unlock();
+                return EEPROM_WRITE_FAIL;
+            }
         }
     }
     /** Multi-page write
@@ -288,9 +297,9 @@ STM24256::EEPROM_Status_t STM24256::write_to_address(uint16_t address, char *dat
          *  and each individual page requires the operation address to be reset to
          *  the new address
          */
-        for(int i = 0; i <= boundaries; i++)
-        {
-            uint16_t address = slice_locs[i][ADDRESS_DIM];
+        for(int boundary = 0; boundary <= boundaries; boundary++)
+        {       
+            uint16_t address = slice_locs[boundary][ADDRESS_DIM];
 
             EEPROM_Status_t status = set_operation_address(address, false);
             if(status != EEPROM_OK)
@@ -303,39 +312,38 @@ STM24256::EEPROM_Status_t STM24256::write_to_address(uint16_t address, char *dat
              */
             int start_idx, end_idx;
 
-            if(i == 0) 
+            if(boundary == 0) 
             {
                 start_idx = 0;
-                end_idx   = slice_locs[i][LENGTH_DIM] - 1;
+                end_idx   = slice_locs[boundary][LENGTH_DIM] - 1;
             }
             else
             {
-                start_idx = slice_locs[i - 1][LENGTH_DIM]; 
-                end_idx   = (slice_locs[i - 1][LENGTH_DIM] + slice_locs[i][LENGTH_DIM]) - 1;
+                start_idx = slice_locs[boundary - 1][LENGTH_DIM]; 
+                end_idx   = (slice_locs[boundary - 1][LENGTH_DIM] + slice_locs[boundary][LENGTH_DIM]) - 1;
             }
-
-            /** Determine length of data 'slice' we need to write
-             */
-            int chunk_length = end_idx - start_idx;
 
             /** Copy data 'slice' into temp write_data buffer
              */ 
-            char write_data[chunk_length];
-            memcpy(write_data, &data[start_idx], chunk_length);
+            char write_data[64];
+            memcpy(write_data, &data[start_idx], slice_locs[boundary][LENGTH_DIM]);
 
-            /** Write data chunk
+            /** Write each byte
              */
-            if(_i2c.write(EEPROM_MEM_ARRAY_ADDRESS_WRITE, write_data, chunk_length) != mbed::I2C::ACK) 
+            for(int byte_slice = 0; byte_slice < slice_locs[boundary][LENGTH_DIM]; byte_slice++)
             {
-                disable_write();
-                _i2c.unlock();
-                return EEPROM_WRITE_FAIL;
+                if(_i2c.write(write_data[byte_slice]) != mbed::I2C::ACK)
+                {
+                    disable_write();
+                    _i2c.unlock();
+                    return EEPROM_WRITE_FAIL;
+                }
             }
 
             /** There must be a minimum of 5 ms delay between EEPROM operations. Without this delay,
              *  the subsequent write operations will fail sporadically
              */
-            if(i != boundaries) 
+            if(boundary != boundaries) 
             {
                 wait_us(5000);
             }
