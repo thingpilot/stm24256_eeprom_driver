@@ -1,4 +1,8 @@
 ## STM24256 Driver Release Notes
+**v1.2.0** *04/10/2019*
+
+ - Add multi-page read/write functionality
+
 **v1.1.1** *27/09/2019*
 
  - Unify usage of brackets throughout library
