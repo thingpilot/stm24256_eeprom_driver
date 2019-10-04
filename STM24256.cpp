@@ -169,7 +169,6 @@ STM24256::EEPROM_Status_t STM24256::read_from_address(uint16_t address, char *da
     else 
     {
         // TODO: Multi-page read
-        // TODO: Write in chunks - don't iterate in for loop
     }
     
 
@@ -228,14 +227,11 @@ STM24256::EEPROM_Status_t STM24256::write_to_address(uint16_t address, char *dat
             return status;
         }
 
-        for(int i = 0; i < data_length; i++) 
+        if(_i2c.write(EEPROM_MEM_ARRAY_ADDRESS_WRITE, data, data_length) != mbed::I2C::ACK) 
         {
-            if(_i2c.write(data[i]) != mbed::I2C::ACK)
-            {
-                disable_write();
-                _i2c.unlock();
-                return EEPROM_WRITE_FAIL;
-            }
+            disable_write();
+            _i2c.unlock();
+            return EEPROM_WRITE_FAIL;
         }
     }
     /** Multi-page write
@@ -281,16 +277,13 @@ STM24256::EEPROM_Status_t STM24256::write_to_address(uint16_t address, char *dat
             char write_data[chunk_length];
             memcpy(write_data, &data[start_idx], chunk_length);
 
-            /** Write each byte
+            /** Write data chunk
              */
-            for(int i = 0; i < chunk_length; i++)
+            if(_i2c.write(EEPROM_MEM_ARRAY_ADDRESS_WRITE, write_data, chunk_length) != mbed::I2C::ACK) 
             {
-                if(_i2c.write(write_data[i]) != mbed::I2C::ACK)
-                {
-                    disable_write();
-                    _i2c.unlock();
-                    return EEPROM_WRITE_FAIL;
-                }
+                disable_write();
+                _i2c.unlock();
+                return EEPROM_WRITE_FAIL;
             }
 
             /** There must be a minimum of 5 ms delay between EEPROM operations. Without this delay,
