@@ -1,6 +1,6 @@
 /**
   * @file    STM24256.h
-  * @version 1.2.0
+  * @version 1.2.1
   * @author  Adam Mitchell
   * @brief   Header file of the STM24256 EEPROM driver module
   */
@@ -38,7 +38,8 @@ class STM24256
             EEPROM_WRITE_FAIL                    = 5,
             EEPROM_VERIFY_FAIL                   = 6,
             EEPROM_DATA_LENGTH_ODD               = 7,
-            EEPROM_DATA_LENGTH_ZERO              = 8
+            EEPROM_DATA_LENGTH_ZERO              = 8,
+            EEPROM_DATA_LENGTH_TOO_LONG          = 9
         };
 
         /** Constructor. Create an EEPROM interface, connected to the pins specified 

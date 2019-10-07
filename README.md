@@ -1,4 +1,8 @@
 ## STM24256 Driver Release Notes
+**v1.2.0** *07/10/2019*
+
+ - Limit maximum data read/write size to 1024 bytes
+
 **v1.2.0** *04/10/2019*
 
  - Add multi-page read/write functionality

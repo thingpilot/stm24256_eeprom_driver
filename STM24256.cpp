@@ -1,6 +1,6 @@
 /**
   * @file    STM24256.cpp
-  * @version 1.2.0
+  * @version 1.2.1
   * @author  Adam Mitchell
   * @brief   C++ file of the STM24256 EEPROM driver module
   */
@@ -160,6 +160,13 @@ STM24256::EEPROM_Status_t STM24256::read_from_address(uint16_t address, char *da
         return EEPROM_DATA_LENGTH_ZERO;
     }
 
+    /** Limit maximum read size to 1 kB
+     */ 
+    if(data_length > 1024)
+    {
+        return EEPROM_DATA_LENGTH_TOO_LONG;
+    }
+
     _i2c.lock();
 
     /** Determine whether or not we need to do a multi-page read or not
@@ -258,6 +265,13 @@ STM24256::EEPROM_Status_t STM24256::write_to_address(uint16_t address, char *dat
     if(data_length <= 0)
     {
         return EEPROM_DATA_LENGTH_ZERO;
+    }
+
+    /** Limit maximum write size to 1 kB
+     */ 
+    if(data_length > 1024)
+    {
+        return EEPROM_DATA_LENGTH_TOO_LONG;
     }
 
     /** The EEPROM will pad single-byte values, this will result in potentially reading
