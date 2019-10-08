@@ -185,11 +185,23 @@ STM24256::EEPROM_Status_t STM24256::read_from_address(uint16_t address, char *da
             return status;
         }
 
-        if(_i2c.read(EEPROM_MEM_ARRAY_ADDRESS_READ, data, data_length) != mbed::I2C::NoACK) 
+        for(uint8_t attempt = 1; attempt < 4; attempt++)
         {
-            _i2c.unlock();
-            return EEPROM_READ_FAIL;
+            int read_ack = _i2c.read(EEPROM_MEM_ARRAY_ADDRESS_READ, data, data_length);
+
+            if(read_ack == mbed::I2C::NoACK)
+            {
+                break;
+            }
+            else if(read_ack != mbed::I2C::NoACK && attempt == 3) 
+            {
+                _i2c.unlock();
+                return EEPROM_READ_FAIL;
+            }
+
+            wait_us(10000);
         }
+        
     }
     /** Multi-page read
      */
@@ -226,10 +238,21 @@ STM24256::EEPROM_Status_t STM24256::read_from_address(uint16_t address, char *da
 
             /** Read data chunk
              */
-            if(_i2c.read(EEPROM_MEM_ARRAY_ADDRESS_READ, &data[start_idx], slice_locs[boundary][LENGTH_DIM]) != mbed::I2C::NoACK) 
+            for(uint8_t attempt = 1; attempt < 4; attempt++)
             {
-                _i2c.unlock();
-                return EEPROM_READ_FAIL;
+                int read_ack = _i2c.read(EEPROM_MEM_ARRAY_ADDRESS_READ, &data[start_idx], slice_locs[boundary][LENGTH_DIM]);
+
+                if(read_ack == mbed::I2C::NoACK)
+                {
+                    break;
+                }
+                else if(read_ack != mbed::I2C::NoACK && attempt == 3) 
+                {
+                    _i2c.unlock();
+                    return EEPROM_READ_FAIL;
+                }
+
+                wait_us(10000);
             }
 
             /** There must be a minimum of 5 ms delay between EEPROM operations due to the time taken by
