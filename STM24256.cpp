@@ -1,6 +1,6 @@
 /**
   * @file    STM24256.cpp
-  * @version 1.2.1
+  * @version 1.2.2
   * @author  Adam Mitchell
   * @brief   C++ file of the STM24256 EEPROM driver module
   */
