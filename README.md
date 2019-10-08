@@ -1,4 +1,8 @@
 ## STM24256 Driver Release Notes
+**v1.2.2** *08/10/2019*
+
+ - Add attempt loop with 10ms backoff around I2C read operations
+
 **v1.2.1** *07/10/2019*
 
  - Limit maximum data read/write size to 1024 bytes
